@@ -1,0 +1,12 @@
+[
+  {
+    "name": "War Engine: Hush of Gears",
+    "app_id": "7661867013568104456",
+    "monetization": {
+      "error": "Page.goto: Target page, context or browser has been closed\nCall log:\n  - navigating to \"https://developers.tiktok.com/portal/game/7661867013568104456/monetization\", waiting until \"networkidle\"\n"
+    },
+    "dashboard": {
+      "error": "Page.goto: Target page, context or browser has been closed"
+    }
+  }
+]

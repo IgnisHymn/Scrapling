@@ -1,0 +1,12 @@
+[
+  {
+    "name": "War Engine: Hush of Gears",
+    "app_id": "7661867013568104456",
+    "monetization": {
+      "error": "无法获取iframe"
+    },
+    "dashboard": {
+      "error": "Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://developers.tiktok.com/portal/game/7661867013568104456/data-dashboard\", waiting until \"networkidle\"\n"
+    }
+  }
+]

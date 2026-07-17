@@ -1,0 +1,245 @@
+<!DOCTYPE html><html dir="ltr" data-tux-color-scheme="light"><head><link rel="icon" href="https://lf16-tiktok-common.ttwstatic.com/obj/tiktok-web-common-sg/mtact/static/images/logo_144c91a.png?v=2"><title>TikTok For Developers</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no,viewport-fit=cover,minimum-scale=1,maximum-scale=1,user-scalable=no"><meta http-equiv="x-ua-compatible" content="ie=edge"><meta name="renderer" content="webkit"><meta name="layoutmode" content="standard"><meta name="imagemode" content="force"><meta name="wap-font-scale" content="no"><meta name="format-detection" content="telephone=no"><script src="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok_privacy_protection_framework/loader/2.0.0.314/index.js" data-region="us-ttp" data-env="production" data-business="goofy-deploy-app-4318" async="" crossorigin="anonymous" data-sw="/sw.js" data-sw_version="1.0.0.89,2.0.0.4" nonce=""></script><script id="tiktok-environment" type="application/json">{"mssdk":{"js":"https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/webmssdk/2.0.0.507/webmssdk.js","reportDomain":"mssdk.tiktokw.us"},"regionInfo":{"isBoe":false,"vgeo":"VGeo-US","vregion":"US-TTP"},"slardar":{"geckoPluginPrefix":"https://lf16-tiktok-common.tiktokcdn-us.com/obj/tiktok-web-common-tx/tiktok/fe/common/gando_libs/slardar-web/usttp/sdk/plugins","pluginPrefix":"https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins","reportDomain":"mon16-normal-useast5.tiktokv.us"},"starling":{"cdn":"https://sf-i18n-resources.tiktokcdn-us.com/obj/tiktok-webarch-solution-i18n-tx","zoneHost":"https://starling.tiktokv.us"},"tea":{"abDomain":"https://libraweb.tiktokw.us","reportDomain":"https://mcs.tiktokw.us"},"idc":"useast5","vdc":"useast5","region":"US-TTP","vregion":"US-TTP"}</script><script id="gfdatav1" type="application/json">{"env":"prod","envName":"prod","runtime":"node","ver":"2.0.0.305","canary":0,"idc":"useast5","region":"US-TTP","vdc":"useast5","vregion":"US-TTP","extra":{"canaryType":null}}</script><script defer="defer" src="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/js/lib-polyfill.831c4c33.js"></script><script defer="" src="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/js/route-manifest-main.cb5210ec.js"></script><script defer="defer" src="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/js/2427.9cfc2e7d.js"></script><script defer="defer" src="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/js/main.2bfc8508.js"></script><script type="application/json" id="tiktok-environment-fallback">{"regionInfo": {"vgeo":"VGeo-US","vregion":"US-TTP","isBoe":false},"slardar": {"reportDomain":"mon16-normal-useast5.tiktokv.us","pluginPrefix":"https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins","geckoPluginPrefix":"https://lf16-tiktok-common.tiktokcdn-us.com/obj/tiktok-web-common-tx/tiktok/fe/common/gando_libs/slardar-web/usttp/sdk/plugins"},"tea": {"reportDomain":"https://mcs.tiktokw.us","abDomain":"https://libraweb.tiktokw.us"},"starling": {"zoneHost":"https://starling.tiktokv.us","cdn":"https://sf-i18n-resources.tiktokcdn-us.com/obj/tiktok-webarch-solution-i18n-tx"}}</script><script type="application/json" id="slardar-config">{"sdkUrl":"https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js","bid":"ttop_dev_portal","slardarClient":"SlardarWeb","disableInit":true}</script><script src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/slardar.web.pre.js"></script><script src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/browser.oci.js?bid=ttop_dev_portal&amp;globalName=SlardarWeb" crossorigin="anonymous"></script><script src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/tiktok-infra/csp/sdk-pre/tea.pre.js"></script><script async="" src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/log-sdk/collect/5.2/collect.js"></script><link rel="stylesheet" type="text/css" href="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/css/async/1228.b1f991c6.css"><link rel="stylesheet" type="text/css" href="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/css/async/async-main.4b56a9ea.css"><link rel="stylesheet" type="text/css" href="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/css/async/3588.b3c35b5d.css"><link rel="stylesheet" type="text/css" href="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/tiktok/web/ttop_dev_portal/static/css/async/3972.6c19be8a.css"><script crossorigin="anonymous" src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/goofy-captcha/2.0.0.104/ttp/captcha.js"></script><style data-emotion="css-global" data-s=""></style><style>.cap-invisible {
+    visibility: hidden
+}
+.cap-absolute {
+    position: absolute
+}
+.cap-relative {
+    position: relative
+}
+.cap-inset-0 {
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px
+}
+.cap-z-10 {
+    z-index: 10
+}
+.cap-mx-4 {
+    margin-left: 4px;
+    margin-right: 4px
+}
+.cap-my-8 {
+    margin-top: 8px;
+    margin-bottom: 8px
+}
+.cap-mb-4 {
+    margin-bottom: 4px
+}
+.cap-mb-8 {
+    margin-bottom: 8px
+}
+.cap-ml-0 {
+    margin-left: 0px
+}
+.cap-mr-2 {
+    margin-right: 2px
+}
+.cap-mt-2 {
+    margin-top: 2px
+}
+.cap-mt-6 {
+    margin-top: 6px
+}
+.cap-inline-block {
+    display: inline-block
+}
+.cap-flex {
+    display: flex
+}
+.cap-aspect-\[16\/8\] {
+    aspect-ratio: 16/8
+}
+.cap-h-40 {
+    height: 40px
+}
+.cap-h-\[105px\] {
+    height: 105px
+}
+.cap-h-\[128px\] {
+    height: 128px
+}
+.cap-h-\[170px\] {
+    height: 170px
+}
+.cap-h-\[470px\] {
+    height: 470px
+}
+.cap-h-\[580px\] {
+    height: 580px
+}
+.cap-h-\[82px\] {
+    height: 82px
+}
+.cap-h-auto {
+    height: auto
+}
+.cap-h-full {
+    height: 100%
+}
+.cap-h-screen {
+    height: 100vh
+}
+.cap-max-h-\[256px\] {
+    max-height: 256px
+}
+.cap-min-h-\[180px\] {
+    min-height: 180px
+}
+.cap-w-\[284px\] {
+    width: 284px
+}
+.cap-w-\[312px\] {
+    width: 312px
+}
+.cap-w-full {
+    width: 100%
+}
+.cap-min-w-0 {
+    min-width: 0px
+}
+.cap-flex-1 {
+    flex: 1 1 0%
+}
+.cap-flex-shrink-0 {
+    flex-shrink: 0
+}
+.cap-cursor-pointer {
+    cursor: pointer
+}
+.cap-flex-row {
+    flex-direction: row
+}
+.cap-flex-row-reverse {
+    flex-direction: row-reverse
+}
+.cap-flex-col {
+    flex-direction: column
+}
+.cap-items-center {
+    align-items: center
+}
+.cap-justify-end {
+    justify-content: flex-end
+}
+.cap-justify-center {
+    justify-content: center
+}
+.cap-justify-between {
+    justify-content: space-between
+}
+.cap-gap-2 {
+    gap: 2px
+}
+.cap-overflow-auto {
+    overflow: auto
+}
+.cap-overflow-hidden {
+    overflow: hidden
+}
+.cap-overflow-y-auto {
+    overflow-y: auto
+}
+.cap-whitespace-pre-line {
+    white-space: pre-line
+}
+.cap-break-words {
+    word-wrap: break-word
+}
+.cap-rounded-full {
+    border-radius: 9999px
+}
+.cap-rounded-lg {
+    border-radius: 0.5rem
+}
+.cap-bg-UISheetGrouped3 {
+    background-color: var(--ui-sheet-grouped-3)
+}
+.cap-px-0 {
+    padding-left: 0px;
+    padding-right: 0px
+}
+.cap-px-12 {
+    padding-left: 12px;
+    padding-right: 12px
+}
+.cap-px-8 {
+    padding-left: 8px;
+    padding-right: 8px
+}
+.cap-py-4 {
+    padding-top: 4px;
+    padding-bottom: 4px
+}
+.cap-pb-8 {
+    padding-bottom: 8px
+}
+.cap-text-left {
+    text-align: left
+}
+.cap-text-center {
+    text-align: center
+}
+.cap-text-\[8px\] {
+    font-size: 8px
+}
+.cap-text-UITextPlaceholder {
+    color: var(--ui-text-placeholder)
+}
+.cap-shadow-md {
+    --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
+    box-shadow: 0 0 rgba(0,0,0,0), 0 0 rgba(0,0,0,0), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 rgba(0,0,0,0)), var(--tw-ring-shadow, 0 0 rgba(0,0,0,0)), var(--tw-shadow)
+}
+@media (min-width: 640px) {
+    .sm\:cap-mb-0 {
+        margin-bottom: 0px
+    }
+    .sm\:cap-ml-8 {
+        margin-left: 8px
+    }
+    .sm\:cap-mr-8 {
+        margin-right: 8px
+    }
+    .sm\:cap-h-\[128px\] {
+        height: 128px
+    }
+    .sm\:cap-h-\[196px\] {
+        height: 196px
+    }
+    .sm\:cap-h-\[210px\] {
+        height: 210px
+    }
+    .sm\:cap-w-\[380px\] {
+        width: 380px
+    }
+    .sm\:cap-w-auto {
+        width: auto
+    }
+    .sm\:cap-flex-row {
+        flex-direction: row
+    }
+    .sm\:cap-flex-col {
+        flex-direction: column
+    }
+    .sm\:cap-items-end {
+        align-items: flex-end
+    }
+    .sm\:cap-justify-start {
+        justify-content: flex-start
+    }
+    .sm\:cap-px-16 {
+        padding-left: 16px;
+        padding-right: 16px
+    }
+    .sm\:cap-py-12 {
+        padding-top: 12px;
+        padding-bottom: 12px
+    }
+    .sm\:cap-pb-16 {
+        padding-bottom: 16px
+    }
+}
+</style><script src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/common-monitors.1.16.7.js" crossorigin="anonymous"></script><script src="https://lf16-cdn-tos.tiktokcdn-us.com/obj/static-tx/slardar/fe/sdk-web/plugins/blank-screen.1.16.7.js" crossorigin="anonymous"></script><style data-emotion="css" data-s=""></style></head><body class="tt4d-ttp-iframe"><div id="root"><div data-is-root-theme="true" data-accent-color="indigo" data-gray-color="slate" data-has-background="true" data-panel-background="translucent" data-radius="medium" data-scaling="100%" class="radix-themes"><div class="semi-tt4d-spin semi-tt4d-spin-middle semi-tt4d-spin-block semi-tt4d-spin-hidden"><div class="semi-tt4d-spin-children" x-semi-prop="children"><div style="width: 100%; min-width: 1024px;"><div><div class="css-1bvkk97" style="margin-bottom: 24px;"><div class="TUXSegmentedControl" data-compact="true" data-size="xs" data-shape="rectangle"><button type="button" class="TUXUnstyledButton TUXSegmentedControl-item" aria-label="Users" data-active="true" data-has-subtitle="false"><div class="TUXSegmentedControl-itemTitleContainer"><div class="TUXSegmentedControl-itemTitle">Users</div></div></button><button type="button" class="TUXUnstyledButton TUXSegmentedControl-item" aria-label="Orders" data-active="false" data-has-subtitle="false"><div class="TUXSegmentedControl-itemTitleContainer"><div class="TUXSegmentedControl-itemTitle">Orders</div></div></button></div></div><div><div class="css-3ybsqp" style="flex-wrap: wrap; row-gap: 8px;"><div class="css-oun3xw"><div class="css-vvowlw"><div role="combobox" aria-disabled="false" aria-expanded="false" aria-controls="semi-tt4d-select-wl0tlcx" aria-haspopup="listbox" aria-label="selected" class="semi-tt4d-select semi-tt4d-select-single semi-tt4d-select-large semi-tt4d-select-with-prefix" id="0v6jjjs" tabindex="0" aria-activedescendant="0v6jjjs-option-0" data-popupid="yjsywsx" style="min-width: 160px;"><div class="semi-tt4d-select-prefix" x-semi-prop="prefix,insetLabel"><span class="tt4d-filter-prefix">Date range</span></div><div class="semi-tt4d-select-selection"><div class="semi-tt4d-select-content-wrapper"><span class="semi-tt4d-select-selection-text" x-semi-prop="placeholder">Yesterday</span></div></div><div class="semi-tt4d-select-arrow" x-semi-prop="arrowIcon"><span role="img" aria-label="" class="semi-tt4d-icon semi-tt4d-icon-default semi-tt4d-icon-chevron_down"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" focusable="false" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z" fill="currentColor"></path></svg></span></div></div></div></div><div class="css-oun3xw"><div class="css-vvowlw"><div role="combobox" aria-disabled="false" aria-expanded="false" aria-controls="semi-tt4d-select-ca8v53g" aria-haspopup="listbox" aria-label="selected" class="semi-tt4d-select semi-tt4d-select-single semi-tt4d-select-large semi-tt4d-select-with-prefix" id="9dl2gpz" tabindex="0" aria-activedescendant="9dl2gpz-option-0" data-popupid="3x9tr2n" style="min-width: 120px;"><div class="semi-tt4d-select-prefix" x-semi-prop="prefix,insetLabel"><span class="tt4d-filter-prefix">Operating system</span></div><div class="semi-tt4d-select-selection"><div class="semi-tt4d-select-content-wrapper"><span class="semi-tt4d-select-selection-text" x-semi-prop="placeholder">All</span></div></div><div class="semi-tt4d-select-arrow" x-semi-prop="arrowIcon"><span role="img" aria-label="" class="semi-tt4d-icon semi-tt4d-icon-default semi-tt4d-icon-chevron_down"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" focusable="false" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z" fill="currentColor"></path></svg></span></div></div></div></div><div class="css-oun3xw"><div class="css-vvowlw"><div role="combobox" aria-disabled="false" aria-expanded="false" aria-controls="semi-tt4d-select-3nck35u" aria-haspopup="listbox" aria-label="selected" class="semi-tt4d-select semi-tt4d-select-single semi-tt4d-select-large semi-tt4d-select-with-prefix" id="w5jr9tj" tabindex="0" aria-activedescendant="w5jr9tj-option-0" data-popupid="4eaohy5" style="min-width: 160px;"><div class="semi-tt4d-select-prefix" x-semi-prop="prefix,insetLabel"><span class="tt4d-filter-prefix">Region</span></div><div class="semi-tt4d-select-selection"><div class="semi-tt4d-select-content-wrapper"><span class="semi-tt4d-select-selection-text" x-semi-prop="placeholder">All</span></div></div><div class="semi-tt4d-select-arrow" x-semi-prop="arrowIcon"><span role="img" aria-label="" class="semi-tt4d-icon semi-tt4d-icon-default semi-tt4d-icon-chevron_down"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" focusable="false" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.08 7.6a1.5 1.5 0 0 1 2.12 0l5.66 5.65 5.66-5.65a1.5 1.5 0 1 1 2.12 2.12l-6.72 6.72a1.5 1.5 0 0 1-2.12 0L4.08 9.72a1.5 1.5 0 0 1 0-2.12Z" fill="currentColor"></path></svg></span></div></div></div></div></div><div height="12px" width="0" data-test-id="spacer" class="css-1rbr20t"></div><div class="css-pia8zz"><div class="css-1q1in3w"><div class="css-1lbhjyn"><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal TUXText--truncate" style="color: var(--ui-text-2); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">Paying users</span><div class="TUXTooltip-reference"><svg fill="currentColor" color="var(--ui-text-2)" font-size="12px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"><path d="M24 6a18 18 0 1 0 0 36 18 18 0 0 0 0-36ZM2 24a22 22 0 1 1 44 0 22 22 0 0 1-44 0Zm25-8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-4 6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V23a1 1 0 0 0-1-1h-2Z"></path></svg></div></div><div class="css-75tc0w"><div class="css-1a3lv9k"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">0</span><span></span></div></div><div class="css-14leypg"></div></div><div class="css-1q1in3w"><div class="css-1lbhjyn"><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal TUXText--truncate" style="color: var(--ui-text-2); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">Percentage of paying users</span></div><div class="css-75tc0w"><div class="css-1a3lv9k"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">0%</span><span></span></div></div></div><div class="css-1q1in3w"><div class="css-1lbhjyn"><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal TUXText--truncate" style="color: var(--ui-text-2); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">Repeat paying users</span><div class="TUXTooltip-reference"><svg fill="currentColor" color="var(--ui-text-2)" font-size="12px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"><path d="M24 6a18 18 0 1 0 0 36 18 18 0 0 0 0-36ZM2 24a22 22 0 1 1 44 0 22 22 0 0 1-44 0Zm25-8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-4 6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V23a1 1 0 0 0-1-1h-2Z"></path></svg></div></div><div class="css-75tc0w"><div class="css-1a3lv9k"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">0</span><span></span></div></div></div><div class="css-1q1in3w"><div class="css-1lbhjyn"><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal TUXText--truncate" style="color: var(--ui-text-2); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">Percentage of repeat paying users</span></div><div class="css-75tc0w"><div class="css-1a3lv9k"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">0%</span><span></span></div></div></div><div class="css-1q1in3w"><div class="css-1lbhjyn"><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal TUXText--truncate" style="color: var(--ui-text-2); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">ARPPU</span><div class="TUXTooltip-reference"><svg fill="currentColor" color="var(--ui-text-2)" font-size="12px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"><path d="M24 6a18 18 0 1 0 0 36 18 18 0 0 0 0-36ZM2 24a22 22 0 1 1 44 0 22 22 0 0 1-44 0Zm25-8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-4 6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V23a1 1 0 0 0-1-1h-2Z"></path></svg></div></div><div class="css-75tc0w"><div class="css-1a3lv9k"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">$0.00</span><span></span></div></div></div><div class="css-1q1in3w"><div class="css-1lbhjyn"><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal TUXText--truncate" style="color: var(--ui-text-2); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">Lifetime value</span><div class="TUXTooltip-reference"><svg fill="currentColor" color="var(--ui-text-2)" font-size="12px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"><path d="M24 6a18 18 0 1 0 0 36 18 18 0 0 0 0-36ZM2 24a22 22 0 1 1 44 0 22 22 0 0 1-44 0Zm25-8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-4 6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V23a1 1 0 0 0-1-1h-2Z"></path></svg></div></div><div class="css-75tc0w"><div class="css-1a3lv9k"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">$0</span><span></span></div></div></div></div><div height="24px" width="0" data-test-id="spacer" class="css-rsptum"></div><div class="css-1q9px1m"><div class="css-9qxp5b"><div class="css-p9rkbj"><div class="css-nna947"><span class="TUXText TUXText--tiktok-sans TUXText--weight-medium" style="color: var(--ui-text-1); font-size: var(--tt4d-p1-font-size); line-height: 125%; letter-spacing: -0.007em;">Paying users</span><span class="TUXText TUXText--tiktok-sans TUXText--weight-normal" style="color: var(--ui-text-3); font-size: var(--tt4d-p4-font-size); line-height: 130%; letter-spacing: 0.0067em;">Number of deduplicated users who have completed at least 1 in-app purchase</span></div><div class="css-1se3bsj"><div class="TUXTooltip-reference"><button class="TUXButton TUXButton--default TUXButton--medium TUXButton--secondary" aria-disabled="false" type="button" style="min-width: unset; padding: unset; width: 40px; height: 40px;"><div class="TUXButton-content"><div class="TUXButton-iconContainer"><svg fill="currentColor" color="inherit" font-size="20px" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"><path d="M8 38a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h32a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1H8ZM8.59 20.41a1 1 0 0 0 0 1.42l13.29 13.3a3 3 0 0 0 4.24 0l13.3-13.3a1 1 0 0 0 0-1.42l-2.81-2.8a1 1 0 0 0-1.44.02L27 26.26V5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v21.26l-8.17-8.63a1 1 0 0 0-1.44-.02l-2.8 2.8Z"></path></svg></div></div></button></div></div></div><div class="css-140lked"></div></div><div class="css-1e98m8w" style="height: 360px;"><div style="position: relative; height: 100%; width: 100%; display: block;"><canvas width="1567" height="360" id="visactor_window_0" style="width: 1567px; height: 360px; display: block;"></canvas></div></div></div></div><div height="24px" width="0" data-test-id="spacer" class="css-rsptum"></div><span class="semi-tt4d-typography semi-tt4d-typography-tertiary semi-tt4d-typography-normal"><div class="css-1wbmhcc"><svg fill="currentColor" font-size="16" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"><path d="M24 6a18 18 0 1 0 0 36 18 18 0 0 0 0-36ZM2 24a22 22 0 1 1 44 0 22 22 0 0 1-44 0Zm25-8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-4 6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V23a1 1 0 0 0-1-1h-2Z"></path></svg>Data is refreshed every day.</div></span></div></div></div></div></div></div><!-- COZE SDK now loads dynamically inside NavBar --><!--<?- chunksMap.js ?>--><!--<?- SSRDataScript ?>--><div id=":r1:" data-floating-ui-portal=""><div class="tux-base-dialog tux-base-dialog--close" style="z-index: 2000;"><div class="tux-base-dialog__container"><div class="tux-dialog__content-container radius-containerslevel2-small" data-testid="tux-dialog-container" style="width: 280px;"><div class="tux-dialog__content-title-container tux-dialog__content-pt-24"><div class="H2-Bold tux-dialog__content-title"></div><div data-test-tag="tux-dialog-title" class="tux-dialog__content-message tux-dialog__content-message-with-title H4-Regular"></div></div><div class="tux-dialog__content-action-container tux-dialog__content-action-container--horizontal"><div style="position: absolute; width: 100%; top: 0px; left: 0px;"><div role="separator" class="tux-separator tux-separator-thin--horizontal" style="background-color: var(--ui-shape-neutral-4);"></div></div><button type="button" data-test-tag="tux-dialog-button" class="tux-dialog-action__text tux-dialog-action__text--primary Headline-Medium tux-dialog-action__base">Close</button></div></div></div></div></div><div id=":r5:" data-floating-ui-portal=""><div id="TUXToastProvider-topOutlet" class="TUXToastProvider-topOutlet" style="z-index: 3000; top: 20px;"></div><div id="TUXToastProvider-centerOutlet" class="TUXToastProvider-center-outlet" style="z-index: 3000; top: 20px;"></div><div class="TUXToastProvider-bottomOutletContainer" style="z-index: 3000; bottom: env(safe-area-inset-bottom);"><div id="TUXToastProvider-bottomOutlet" class="TUXToastProvider-bottomOutlet"></div><div id="TUXToastProvider-noticeOutlet" class="TUXToastProvider-noticeOutlet"></div></div></div></body></html>

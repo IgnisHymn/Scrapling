@@ -1,0 +1,12 @@
+[
+  {
+    "name": "War Engine: Hush of Gears",
+    "app_id": "7661867013568104456",
+    "monetization": {
+      "error": "Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"https://developers.tiktok.com/portal/game/7661867013568104456/monetization?tab=iaa\", waiting until \"networkidle\"\n"
+    },
+    "dashboard": {
+      "raw_text": "Analytics\nUsers\nPerformance\nBehavior\nRetention\nProfile\nDevice\nSource\nDate range\nCustom\n7/15/2026-7/15/2026\nOperating system\nAll\nRegion\nAll\nTotal users\n86\nNew users\n80\nActive users\n82\nRepeat users\n2\nLaunched sessions\n85\nAverage launched sessions\n1.04\nAverage duration per user\n6m\nAverage duration per session\n5m\nTotal users\nTotal number of users that launched a game session\nData is refreshed every day."
+    }
+  }
+]
