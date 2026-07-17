@@ -17,6 +17,7 @@ class SpiderConfig:
     # 输出配置
     OUTPUT_DIR = Path(__file__).parent / "output"
     REPORT_DIR = Path(__file__).parent / "reports"
+    DAYS_REPORT_PATH = r"\\192.168.110.40\胜加\自动化生产\TikTok运营端数据报表\DaysReports.xlsx"
     
     # iframe 定位器
     IFRAME_TITLE = "TikTok for Developers embedded view"

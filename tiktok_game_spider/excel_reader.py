@@ -16,7 +16,7 @@ class ExcelReader:
         # 读取Sheet1: AppInfos
         ws = wb["AppInfos"]
         apps = []
-        for row in ws.iter_rows(min_row=2, values_only=True):  # 跳过表头
+        for row in ws.iter_rows(min_row=1, values_only=True):
             if row[0] and row[1]:  # 确保名称和app_id都存在
                 apps.append({
                     "name": str(row[0]).strip(),

@@ -1,6 +1,5 @@
 ﻿"""主入口文件 - TikTok小游戏爬虫"""
 import asyncio
-import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -12,7 +11,7 @@ from config import SpiderConfig
 from excel_reader import ExcelReader
 from login import TikTokLogin
 from page_parser import PageParser
-from report import ReportGenerator
+from report import ExcelSaver
 from utils.browser import BrowserManager
 
 
@@ -33,15 +32,13 @@ async def run_spider():
         print("错误: 未读取到任何游戏配置，请检查Excel文件")
         return
     
-    # 2. 初始化报告生成器
-    report_gen = ReportGenerator(config.REPORT_DIR)
+    # 2. 初始化Excel保存器
+    excel_saver = ExcelSaver(config.DAYS_REPORT_PATH)
     
     # 3. 启动浏览器
     print("正在启动浏览器...")
     browser_manager = BrowserManager(config)
     context = await browser_manager.start()
-    
-    all_data = []
     
     try:
         page = await context.new_page()
@@ -66,71 +63,86 @@ async def run_spider():
             
             print(f"\n[{i}/{len(apps)}] 处理游戏: {app_name} (ID: {app_id})")
             
-            app_data = {
-                "name": app_name,
-                "app_id": app_id,
-                "monetization": {},
-                "dashboard": {}
-            }
+            monetization_data = {}
+            dashboard_data = {}
+            date_str = None
             
             # 访问变现数据页面
             monetization_url = f"{base_url}/{app_id}/monetization?tab=iaa"
             print(f"  访问变现页面: {monetization_url}")
             try:
-                await page.goto(monetization_url, wait_until="networkidle", timeout=30000)
-                await asyncio.sleep(5)
-                
+                await page.goto(monetization_url, wait_until="domcontentloaded", timeout=60000)
+                await asyncio.sleep(7)
+
                 # 获取iframe
                 target_frame = await parser.get_target_frame()
                 if target_frame:
                     print(f"  找到目标iframe")
                     # 在iframe中选择日期
-                    await parser.select_date_in_iframe(target_frame)
-                    # 从iframe中获取数据
-                    app_data["monetization"] = await parser.get_data_from_iframe(target_frame)
-                    print(f"  变现数据提取完成")
+                    date_str = await parser.select_date_in_iframe(target_frame)
+                    # 从iframe中获取All区域变现数据
+                    monetization_data = await parser.get_monetization_data(target_frame)
+                    print(f"  All区域变现数据提取完成")
+                    
+                    # 切换到US区域获取US数据
+                    print(f"  切换到US区域...")
+                    await parser.select_region_us(target_frame)
+                    us_data = await parser.get_us_monetization_data(target_frame)
+                    monetization_data["eCPM（US）"] = us_data.get("eCPM", "N/A")
+                    monetization_data["广告收入（US）"] = us_data.get("Ad revenue", "N/A")
+                    print(f"  US区域数据提取完成")
                 else:
                     print(f"  未找到目标iframe")
-                    app_data["monetization"] = {"error": "未找到iframe"}
             except Exception as e:
                 print(f"  变现页面解析失败: {e}")
-                app_data["monetization"] = {"error": str(e)}
             
             # 访问数据仪表板页面
             dashboard_url = f"{base_url}/{app_id}/data-dashboard"
             print(f"  访问仪表板页面: {dashboard_url}")
             try:
-                await page.goto(dashboard_url, wait_until="networkidle", timeout=30000)
-                await asyncio.sleep(3)
+                await page.goto(dashboard_url, wait_until="domcontentloaded", timeout=60000)
+                await asyncio.sleep(7)
                 
                 # 获取iframe
                 target_frame = await parser.get_target_frame()
                 if target_frame:
                     print(f"  找到目标iframe")
                     # 在iframe中选择日期
-                    await parser.select_date_in_iframe(target_frame)
-                    # 从iframe中获取数据
-                    app_data["dashboard"] = await parser.get_data_from_iframe(target_frame)
-                    print(f"  仪表板数据提取完成")
+                    if not date_str:
+                        date_str = await parser.select_date_in_iframe(target_frame)
+                    else:
+                        await parser.select_date_in_iframe(target_frame)
+                    # 从iframe中获取Users数据
+                    dashboard_data = await parser.get_dashboard_data(target_frame)
+                    print(f"  Users数据提取完成")
+                    
+                    # 切换到Performance标签
+                    print(f"  切换到Performance标签...")
+                    await parser.click_performance_tab(target_frame)
+                    # 选择相同日期范围
+                    if date_str:
+                        await parser.select_date_in_iframe(target_frame)
+                    # 获取Performance数据
+                    perf_data = await parser.get_performance_data(target_frame)
+                    dashboard_data["启动成功率"] = perf_data.get("Launch success rate", "N/A")
+                    dashboard_data["首次平均启动速度"] = perf_data.get("Average first-time launch speed", "N/A")
+                    dashboard_data["平均启动速度"] = perf_data.get("Average launch speed", "N/A")
+                    print(f"  Performance数据提取完成")
                 else:
                     print(f"  未找到目标iframe")
-                    app_data["dashboard"] = {"error": "未找到iframe"}
             except Exception as e:
                 print(f"  仪表板页面解析失败: {e}")
-                app_data["dashboard"] = {"error": str(e)}
             
-            all_data.append(app_data)
+            # 保存数据到Excel
+            if date_str:
+                excel_saver.save_data(app_name, date_str, monetization_data, dashboard_data)
+                print(f"  数据已保存到 {app_name} sheet")
+            else:
+                print(f"  跳过保存：未获取到日期")
         
-        # 6. 保存原始数据
-        config.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        output_file = config.OUTPUT_DIR / f"tiktok_games_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(output_file, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, ensure_ascii=False, indent=2)
-        print(f"\n原始数据已保存: {output_file}")
-        
-        # 7. 生成HTML报告
-        report_path = report_gen.generate(all_data)
-        print(f"HTML报告已生成: {report_path}")
+        print("\n" + "=" * 40)
+        print("所有游戏数据爬取完成!")
+        print("=" * 40)
         
     except Exception as e:
         print(f"爬虫运行出错: {e}")

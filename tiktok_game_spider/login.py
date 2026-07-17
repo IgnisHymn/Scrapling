@@ -52,7 +52,7 @@ class TikTokLogin:
         
         # 等待页面跳转（登录成功后会跳转到portal页面）
         try:
-            await self.page.wait_for_url('**/portal**', timeout=30000)
+            await self.page.wait_for_url('**/portal**', timeout=10000)
             print("登录成功！")
             return True
         except Exception as e:
