@@ -136,21 +136,39 @@ class PageParser:
         data = {}
         
         try:
+            # 等待页面完全加载
             await frame.wait_for_load_state("networkidle")
-            body_text = await frame.locator("body").inner_text()
+            # 额外等待 7 秒，确保 JavaScript 渲染的数据加载完成
+            import asyncio
+            await asyncio.sleep(7)
             
-            lines = body_text.split("\n")
-            for i, line in enumerate(lines):
-                line = line.strip()
-                for field in target_fields:
-                    if field not in data and line.lower() == field.lower():
-                        if i + 1 < len(lines):
-                            value = lines[i + 1].strip()
-                            if self._is_valid_value(value):
-                                data[field] = value
-                            else:
-                                data[field] = "N/A"
-                        break
+            # 尝试多次读取数据，直到获取到有效数据
+            max_retries = 3
+            for retry in range(max_retries):
+                body_text = await frame.locator("body").inner_text()
+                
+                lines = body_text.split("\n")
+                for i, line in enumerate(lines):
+                    line = line.strip()
+                    for field in target_fields:
+                        if field not in data and line.lower() == field.lower():
+                            if i + 1 < len(lines):
+                                value = lines[i + 1].strip()
+                                if self._is_valid_value(value):
+                                    data[field] = value
+                                else:
+                                    data[field] = "N/A"
+                            break
+                
+                # 检查是否所有字段都有数据
+                all_fields_found = all(field in data for field in target_fields)
+                if all_fields_found:
+                    break
+                
+                # 如果还有字段没找到，等待后重试
+                if retry < max_retries - 1:
+                    print(f"    数据加载中，等待重试 ({retry + 1}/{max_retries})...")
+                    await asyncio.sleep(2)
             
             for field in target_fields:
                 if field not in data:

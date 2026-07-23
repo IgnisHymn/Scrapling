@@ -1,7 +1,9 @@
 """主入口文件 - TikTok小游戏爬虫"""
 import asyncio
 import json
+import os
 import sys
+import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +18,9 @@ from page_parser import PageParser
 from report import ExcelSaver
 from feishu_sync import FeishuSync
 from utils.browser import BrowserManager
+
+# 锁文件路径
+LOCK_FILE = Path(__file__).parent / "output" / ".tiktok_report.lock"
 
 
 async def run_spider() -> tuple[int, list[dict]]:
@@ -48,22 +53,8 @@ async def run_spider() -> tuple[int, list[dict]]:
     
     failed_games = []  # 记录失败的游戏
     
-    # 定义重启浏览器的函数
-    async def restart_browser():
-        nonlocal browser_manager, context, page, parser
-        print("  [浏览器重启] 正在重启浏览器以释放内存...")
-        await browser_manager.close()
-        browser_manager = BrowserManager(config)
-        context = await browser_manager.start()
-        page = await context.new_page()
-        # 重新登录
-        login = TikTokLogin(page, config)
-        await login.login()
-        parser = PageParser(page, config.IFRAME_TITLE)
-        print("  [浏览器重启] 重启完成")
-    
-    # 定义处理单个游戏的函数（支持重试）
-    async def process_game(app_name: str, app_id: str, is_retry: bool = False) -> bool:
+    # 定义处理单个游戏的函数
+    async def process_game(app_name: str, app_id: str) -> bool:
         """处理单个游戏，返回是否成功"""
         nonlocal page, parser
         
@@ -170,28 +161,17 @@ async def run_spider() -> tuple[int, list[dict]]:
         print("开始爬取游戏数据...")
         print("=" * 40)
         
-        RESTART_INTERVAL = 4  # 每处理4个游戏重启一次浏览器
-        
         for i, app in enumerate(apps, 1):
             app_name = app["name"]
             app_id = app["app_id"]
-            
-            # 每处理RESTART_INTERVAL个游戏重启浏览器，防止内存溢出
-            if i > 1 and (i - 1) % RESTART_INTERVAL == 0:
-                await restart_browser()
             
             print(f"\n[{i}/{len(apps)}] 处理游戏: {app_name} (ID: {app_id})")
             
             success = await process_game(app_name, app_id)
             
-            # 失败时重试一次（重启浏览器后重试）
             if not success:
-                print(f"  [重试] {app_name} 处理失败，重启浏览器后重试...")
-                await restart_browser()
-                success = await process_game(app_name, app_id, is_retry=True)
-                if not success:
-                    failed_games.append({"name": app_name, "app_id": app_id})
-                    print(f"  [失败] {app_name} 重试后仍然失败")
+                failed_games.append({"name": app_name, "app_id": app_id})
+                print(f"  [失败] {app_name} 处理失败，跳过继续下一个游戏")
         
         print("\n" + "=" * 40)
         print("所有游戏数据爬取完成!")
@@ -203,6 +183,7 @@ async def run_spider() -> tuple[int, list[dict]]:
         print(f"爬虫运行出错: {e}")
         import traceback
         traceback.print_exc()
+        raise  # 重新抛出，让 main() 知道失败了
         
     finally:
         await browser_manager.close()
@@ -316,67 +297,117 @@ def save_failed_games(failed_games: list[dict], output_dir: Path):
         print(f"保存失败游戏列表出错: {e}")
 
 
+def acquire_lock() -> bool:
+    """获取锁，如果已锁定则返回 False"""
+    if LOCK_FILE.exists():
+        # 检查锁文件是否过期（超过 30 分钟认为是残留锁）
+        try:
+            lock_time = LOCK_FILE.stat().st_mtime
+            if (time.time() - lock_time) > 1800:  # 30 分钟
+                print("发现过期锁文件，清理中...")
+                LOCK_FILE.unlink()
+            else:
+                return False
+        except:
+            return False
+    
+    # 创建锁文件
+    try:
+        LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LOCK_FILE.write_text(str(os.getpid()))
+        return True
+    except:
+        return False
+
+
+def release_lock():
+    """释放锁"""
+    try:
+        if LOCK_FILE.exists():
+            LOCK_FILE.unlink()
+    except:
+        pass
+
+
 def main():
     """主函数"""
-    start_time = datetime.now()
-    print("=" * 60)
-    print(f"TikTok小游戏爬虫 - {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 60)
-
-    success = False
-    game_count = 0
-    failed_games = []
-    config = SpiderConfig()
-    output_path = Path(config.DAYS_REPORT_PATH)
-    network_path = Path(config.DAYS_REPORT_NETWORK_PATH)
-    error_msg = None
-
-    # 确保输出目录存在
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
+    # 检查锁
+    if not acquire_lock():
+        print("另一个 tiktok-report 任务正在运行，本次跳过")
+        print("如需强制运行，请删除锁文件: " + str(LOCK_FILE))
+        # 发送跳过通知
+        send_feishu_notification(
+            success=False,
+            duration="0",
+            game_count=0,
+            output_path="",
+            error_msg="任务被跳过：另一个实例正在运行"
+        )
+        return
+    
     try:
-        game_count, failed_games = asyncio.run(run_spider())
-        success = True
-    except Exception as e:
-        error_msg = str(e)
-        print(f"爬虫运行出错: {e}")
+        start_time = datetime.now()
+        print("=" * 60)
+        print(f"TikTok小游戏爬虫 - {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print("=" * 60)
 
-    # 保存失败游戏列表
-    save_failed_games(failed_games, output_path.parent)
+        success = False
+        game_count = 0
+        failed_games = []
+        config = SpiderConfig()
+        output_path = Path(config.DAYS_REPORT_PATH)
+        network_path = Path(config.DAYS_REPORT_NETWORK_PATH)
+        error_msg = None
 
-    # Copy to network share
-    if success:
-        import shutil
+        # 确保输出目录存在
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
         try:
-            network_path.parent.mkdir(parents=True, exist_ok=True)
-            lock_file = network_path.parent / f"~${network_path.name}"
-            if lock_file.exists():
-                try:
-                    lock_file.unlink()
-                except:
-                    pass
-            shutil.copy2(output_path, network_path)
-            print(f"已复制到网络路径: {network_path}")
+            game_count, failed_games = asyncio.run(run_spider())
+            success = True
         except Exception as e:
-            print(f"复制到网络路径失败: {e}")
-            error_msg = f"数据已保存到本地但复制到网络失败: {e}"
-    
-    duration = (datetime.now() - start_time).total_seconds()
+            error_msg = str(e)
+            print(f"爬虫运行出错: {e}")
 
-    print("\n" + "=" * 60)
-    print("爬虫运行完成!" if success else "爬虫运行失败!")
-    if failed_games:
-        print(f"失败游戏: {len(failed_games)} 个")
-    print("=" * 60)
+        # 保存失败游戏列表
+        save_failed_games(failed_games, output_path.parent)
 
-    # 构建通知消息
-    notify_path = network_path if success else output_path
-    if failed_games:
-        failed_names = ", ".join(g["name"] for g in failed_games)
-        extra_msg = f"失败游戏 ({len(failed_games)}): {failed_names}"
-        error_msg = f"{error_msg}\n{extra_msg}" if error_msg else extra_msg
+        # Copy to network share
+        if success:
+            import shutil
+            try:
+                network_path.parent.mkdir(parents=True, exist_ok=True)
+                lock_file = network_path.parent / f"~${network_path.name}"
+                if lock_file.exists():
+                    try:
+                        lock_file.unlink()
+                    except:
+                        pass
+                shutil.copy2(output_path, network_path)
+                print(f"已复制到网络路径: {network_path}")
+            except Exception as e:
+                print(f"复制到网络路径失败: {e}")
+                error_msg = f"数据已保存到本地但复制到网络失败: {e}"
+        
+        duration = (datetime.now() - start_time).total_seconds()
+
+        print("\n" + "=" * 60)
+        print("爬虫运行完成!" if success else "爬虫运行失败!")
+        if failed_games:
+            print(f"失败游戏: {len(failed_games)} 个")
+        print("=" * 60)
+
+        # 构建通知消息
+        notify_path = network_path if success else output_path
+        if failed_games:
+            failed_names = ", ".join(g["name"] for g in failed_games)
+            extra_msg = f"失败游戏 ({len(failed_games)}): {failed_names}"
+            error_msg = f"{error_msg}\n{extra_msg}" if error_msg else extra_msg
+        
+        send_feishu_notification(success, f"{duration:.2f}", game_count, notify_path, error_msg)
     
-    send_feishu_notification(success, f"{duration:.2f}", game_count, notify_path, error_msg)
+    finally:
+        release_lock()
 
 
 if __name__ == "__main__":

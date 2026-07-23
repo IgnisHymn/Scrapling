@@ -9,21 +9,34 @@ from pathlib import Path
 class FeishuSync:
     """飞书电子表格同步"""
     
-    # 飞书配置（从环境变量读取）
-    FEISHU_APP_ID = os.environ.get('FEISHU_APP_ID', '')
-    FEISHU_APP_SECRET = os.environ.get('FEISHU_APP_SECRET', '')
-    SPREADSHEET_TOKEN = os.environ.get('FEISHU_SPREADSHEET_TOKEN', 'GeELsuE0ohaFyitSZjMcOU4bnQc')
+    # 飞书表格 Token（固定值）
+    SPREADSHEET_TOKEN = 'GeELsuE0ohaFyitSZjMcOU4bnQc'
     
     def __init__(self):
         self.token = None
         self.sheets = None
         self._styled_sheets = set()  # 已设置日期格式的 sheet
+        self.FEISHU_APP_ID = ''
+        self.FEISHU_APP_SECRET = ''
+        self._load_config()
         self._validate_config()
+    
+    def _load_config(self):
+        """从配置文件读取飞书凭证"""
+        config_path = Path(__file__).parent.parent / "config" / "feishu_credentials.json"
+        try:
+            with open(config_path, "r", encoding="utf-8-sig") as f:
+                config = json.load(f)
+            self.FEISHU_APP_ID = config.get("app_id", "")
+            self.FEISHU_APP_SECRET = config.get("app_secret", "")
+            self.SPREADSHEET_TOKEN = config.get("spreadsheet_token", self.SPREADSHEET_TOKEN)
+        except Exception as e:
+            print(f"无法读取飞书凭证配置: {e}")
     
     def _validate_config(self):
         """验证飞书配置是否完整"""
         if not self.FEISHU_APP_ID or not self.FEISHU_APP_SECRET:
-            print("警告: 飞书配置不完整，请设置环境变量 FEISHU_APP_ID 和 FEISHU_APP_SECRET")
+            print("警告: 飞书配置不完整，请检查 config/feishu_credentials.json")
     
     def _get_token(self):
         """获取飞书 Token"""
@@ -339,7 +352,7 @@ class FeishuSync:
             ad_revenue,            # G: 广告收入
             None,                  # H: 广告支出
             None,                  # I: ROAS
-            None,                  # J: IPU
+            self._calculate_ipu(ad_impressions, active_users),  # J: IPU
             total_users,           # K: 总用户数
             new_users,             # L: 新用户数
             active_users,          # M: 活跃用户数DAU

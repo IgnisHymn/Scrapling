@@ -77,8 +77,12 @@ class TikTokLogin:
                 await self._wait_for_user_input()
                 return True
             else:
-                print(f"登录可能已完成，当前URL: {current_url}")
-                return True
+                if "portal" in current_url:
+                    print(f"登录成功，当前URL: {current_url}")
+                    return True
+                else:
+                    print(f"登录状态不确定，当前URL: {current_url}")
+                    raise RuntimeError(f"登录失败，URL 不是 portal 页面: {current_url}")
     
     async def _wait_for_user_input(self):
         """等待用户手动完成验证"""
