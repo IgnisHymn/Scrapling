@@ -1,3 +1,4 @@
 tiktok_game_spider/__pycache__
 tiktok_game_spider/output
 config/feishu_credentials.json
+tiktok_game_spider/browser_state/auth_state.json
