@@ -18,8 +18,12 @@ class SpiderConfig:
     # 输出配置
     OUTPUT_DIR = Path(__file__).parent / "output"
     REPORT_DIR = Path(__file__).parent / "reports"
-    DAYS_REPORT_PATH = str(Path(__file__).parent / "output" / "DaysReports.xlsx")
-    DAYS_REPORT_NETWORK_PATH = Path(r"\\192.168.110.40\胜加\自动化生产\TikTok运营端数据报表\DaysReports.xlsx")
+    DAYS_REPORT_OTHER_PATH = str(Path(__file__).parent / "output" / "DaysReportsOther.xlsx")
+    DAYS_REPORT_US_PATH = str(Path(__file__).parent / "output" / "DaysReportsUS.xlsx")
+    
+    # 飞书表格 Token
+    SPREADSHEET_OTHER_TOKEN = "RJvDwa1wRiCh6RkssuZcLLUHn2e"
+    SPREADSHEET_US_TOKEN = "RrjGwL6kXiDQnPkzgUpcLNvbnVb"
     
     # iframe 定位器
     IFRAME_TITLE = "TikTok for Developers embedded view"

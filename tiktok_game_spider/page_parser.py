@@ -1,13 +1,6 @@
-"""页面解析模块 - 处理iframe和动态id
-
-关键发现：iframe是跨域的
-- 主页面域名: developers.tiktok.com
-- iframe域名: developers.us.tiktok.com
-
-解决方案：在iframe中直接操作
-"""
+"""页面解析模块 - 直接在主页面上操作"""
 from datetime import datetime, timedelta
-from playwright.async_api import Page, Frame
+from playwright.async_api import Page
 
 
 class PageParser:
@@ -24,9 +17,8 @@ class PageParser:
         "data is refreshed every day", "number of times"
     ]
     
-    def __init__(self, page: Page, iframe_title: str):
+    def __init__(self, page: Page):
         self.page = page
-        self.iframe_title = iframe_title
     
     def _is_valid_value(self, value: str) -> bool:
         """验证值是否是有效的数值（不是字段名称或描述文本）"""
@@ -40,16 +32,8 @@ class PageParser:
             return False
         return True
     
-    async def get_target_frame(self):
-        """获取目标iframe（developers.us.tiktok.com）"""
-        frames = self.page.frames
-        for frame in frames:
-            if "developers.us.tiktok.com" in frame.url:
-                return frame
-        return None
-    
-    async def select_date_in_iframe(self, frame: Frame, target_date=None):
-        """在iframe中选择日期范围"""
+    async def select_date(self, target_date=None):
+        """选择日期范围"""
         if target_date is None:
             target_date = datetime.now() - timedelta(days=2)
         
@@ -60,22 +44,22 @@ class PageParser:
         
         try:
             # 1. 找到Date range下拉菜单并点击
-            date_select = frame.locator('[role="combobox"]').first
+            date_select = self.page.locator('div[role="combobox"]:has(span:has-text("Date range"))')
             await date_select.click()
             
             # 2. 等待并选择 Custom 选项
-            custom_opt = frame.locator('[role="option"]:has-text("Custom")')
+            custom_opt = self.page.locator('[role="option"]:has-text("Custom")')
             await custom_opt.wait_for(state="visible", timeout=10000)
             await custom_opt.click()
             
             # 3. 等待并点击日期按钮打开日历
-            date_picker = frame.locator('.TUXDatePicker-button')
+            date_picker = self.page.locator('.TUXDatePicker-button')
             await date_picker.wait_for(state="visible", timeout=10000)
             await date_picker.click()
             
             # 4. 等待日期按钮可用，找到目标日期
-            await frame.locator('.TUXCalendar-dateButton:not([disabled])').first.wait_for(state="visible", timeout=10000)
-            available_dates = await frame.locator(
+            await self.page.locator('.TUXCalendar-dateButton:not([disabled])').first.wait_for(state="visible", timeout=10000)
+            available_dates = await self.page.locator(
                 '.TUXCalendar-dateButton:not([disabled])'
             ).all()
             
@@ -93,10 +77,10 @@ class PageParser:
                 await target_btn.click()
             
             # 7. 等待并点击 Confirm
-            confirm_btn = frame.locator('.TUXCalendar-confirm-button')
+            confirm_btn = self.page.locator('.TUXCalendar-confirm-button')
             await confirm_btn.wait_for(state="visible", timeout=10000)
             await confirm_btn.click()
-            await frame.wait_for_load_state("networkidle")
+            await self.page.wait_for_load_state("networkidle")
             
             print(f"  日期选择完成")
             return date_str
@@ -105,47 +89,21 @@ class PageParser:
             print(f"  日期选择失败: {e}")
             return None
     
-    async def get_data_from_iframe(self, frame: Frame):
-        """从iframe中获取数据"""
-        data = {}
-        
-        try:
-            await frame.wait_for_load_state("networkidle")
-            body_text = await frame.locator("body").inner_text()
-            
-            tables = await frame.locator("table").all()
-            for table in tables:
-                rows = await table.locator("tr").all()
-                for row in rows:
-                    cells = await row.locator("td, th").all()
-                    if len(cells) >= 2:
-                        key = await cells[0].inner_text()
-                        value = await cells[1].inner_text()
-                        data[key.strip()] = value.strip()
-            
-            if not data:
-                data["raw_text"] = body_text[:5000]
-                
-        except Exception as e:
-            data["error"] = str(e)
-        
-        return data
-
-    async def get_fields_from_frame(self, frame: Frame, target_fields: list[str]) -> dict:
-        """通用方法：从iframe中提取指定字段的数据"""
+    async def get_fields(self, target_fields: list[str]) -> dict:
+        """通用方法：从页面中提取指定字段的数据"""
         data = {}
         
         try:
             # 等待页面完全加载
-            await frame.wait_for_load_state("networkidle")
-            # 额外等待 7 秒，确保 JavaScript 渲染的数据加载完成
+            await self.page.wait_for_load_state("networkidle")
+            # 额外等待，确保 JavaScript 渲染的数据加载完成
             import asyncio
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             
             # 尝试多次读取数据，直到获取到有效数据
             max_retries = 3
             for retry in range(max_retries):
-                body_text = await frame.locator("body").inner_text()
+                body_text = await self.page.locator("body").inner_text()
                 
                 lines = body_text.split("\n")
                 for i, line in enumerate(lines):
@@ -179,44 +137,38 @@ class PageParser:
         
         return data
 
-    async def get_monetization_data(self, frame: Frame):
+    async def get_monetization_data(self):
         """从变现页面获取特定字段"""
-        return await self.get_fields_from_frame(frame, [
+        return await self.get_fields([
             "Ad requests", "Ad impressions", "Ad clicks",
             "Ad click-through rate", "eCPM", "Ad revenue"
         ])
     
-    async def get_dashboard_data(self, frame: Frame):
+    async def get_dashboard_data(self):
         """从仪表板页面获取特定字段"""
-        return await self.get_fields_from_frame(frame, [
+        return await self.get_fields([
             "Total users", "New users", "Active users", "Repeat users",
             "Launched sessions", "Average launched sessions",
             "Average duration per user", "Average duration per session"
         ])
 
-    async def get_performance_data(self, frame: Frame):
+    async def get_performance_data(self):
         """获取Performance标签的数据"""
-        return await self.get_fields_from_frame(frame, [
+        return await self.get_fields([
             "Launch success rate", "Average first-time launch speed",
             "Average launch speed"
         ])
 
-    async def get_us_monetization_data(self, frame: Frame):
-        """获取US区域的变现数据（eCPM和Ad revenue）"""
-        return await self.get_fields_from_frame(frame, [
-            "eCPM", "Ad revenue"
-        ])
-
-    async def select_region_us(self, frame: Frame):
-        """在iframe中选择United States区域"""
+    async def select_region_us(self):
+        """选择United States区域"""
         try:
-            region_select = frame.locator('span.semi-tt4d-select-selection-text:has-text("All")')
+            region_select = self.page.locator('div[role="combobox"][aria-haspopup="dialog"]:has(span:has-text("Rest of the world"))')
             await region_select.click()
             
-            us_option = frame.locator('div.semi-tt4d-select-option-text:has-text("United States")')
+            us_option = self.page.locator('li[role="menuitem"]:has(span:has-text("United States"))')
             await us_option.wait_for(state="visible", timeout=10000)
             await us_option.click()
-            await frame.wait_for_load_state("networkidle")
+            await self.page.wait_for_load_state("networkidle")
             
             print(f"  已切换到United States区域")
             return True
@@ -225,13 +177,13 @@ class PageParser:
             print(f"  切换区域失败: {e}")
             return False
     
-    async def click_performance_tab(self, frame: Frame):
+    async def click_performance_tab(self):
         """点击Performance标签"""
         try:
-            perf_btn = frame.locator('button[aria-label="Performance"]')
+            perf_btn = self.page.locator('button[aria-label="Performance"]')
             await perf_btn.wait_for(state="visible", timeout=10000)
             await perf_btn.click()
-            await frame.wait_for_load_state("networkidle")
+            await self.page.wait_for_load_state("networkidle")
             
             print(f"  已切换到Performance标签")
             return True

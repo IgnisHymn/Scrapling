@@ -40,11 +40,13 @@ async def run_spider() -> tuple[int, list[dict]]:
         print("错误: 未读取到任何游戏配置，请检查Excel文件")
         return 0, []
     
-    # 2. 初始化Excel保存器
-    excel_saver = ExcelSaver(config.DAYS_REPORT_PATH)
+    # 2. 初始化Excel保存器（双文件）
+    excel_saver_other = ExcelSaver(config.DAYS_REPORT_OTHER_PATH)
+    excel_saver_us = ExcelSaver(config.DAYS_REPORT_US_PATH)
     
-    # 初始化飞书同步
-    feishu_sync = FeishuSync()
+    # 初始化飞书同步（双表格）
+    feishu_sync_other = FeishuSync(config.SPREADSHEET_OTHER_TOKEN)
+    feishu_sync_us = FeishuSync(config.SPREADSHEET_US_TOKEN)
     
     # 3. 启动浏览器
     print("正在启动浏览器...")
@@ -53,88 +55,164 @@ async def run_spider() -> tuple[int, list[dict]]:
     
     failed_games = []  # 记录失败的游戏
     
+    async def retry_on_error(url, operation, max_retries=2):
+        """遇到错误时刷新页面重试
+        
+        Args:
+            url: 当前页面 URL
+            operation: 异步操作函数
+            max_retries: 最大重试次数
+            
+        Returns:
+            操作结果
+        """
+        for attempt in range(max_retries + 1):
+            try:
+                return await operation()
+            except Exception as e:
+                if attempt < max_retries:
+                    print(f"  错误: {e}, 刷新页面重试 ({attempt + 1}/{max_retries})...")
+                    await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                    await parser.select_date()
+                else:
+                    raise e
+    
     # 定义处理单个游戏的函数
     async def process_game(app_name: str, app_id: str) -> bool:
         """处理单个游戏，返回是否成功"""
         nonlocal page, parser
         
-        monetization_data = {}
-        dashboard_data = {}
+        # Rest of World 数据
+        other_monetization_data = {}
+        other_dashboard_data = {}
+        # US 数据
+        us_monetization_data = {}
+        us_dashboard_data = {}
         date_str = None
         has_error = False
         
-        # 访问变现数据页面
+        # ==================== Step 1: 变现页面 ====================
         monetization_url = f"{base_url}/{app_id}/monetization?tab=iaa"
         print(f"  访问变现页面: {monetization_url}")
         try:
             await page.goto(monetization_url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_selector('iframe[title="TikTok for Developers embedded view"]', timeout=30000)
-
-            target_frame = await parser.get_target_frame()
-            if target_frame:
-                print(f"  找到目标iframe")
-                date_str = await parser.select_date_in_iframe(target_frame)
-                monetization_data = await parser.get_monetization_data(target_frame)
-                print(f"  All区域变现数据提取完成")
-                
-                print(f"  切换到US区域...")
-                await parser.select_region_us(target_frame)
-                us_data = await parser.get_us_monetization_data(target_frame)
-                monetization_data["eCPM（US）"] = us_data.get("eCPM", "N/A")
-                monetization_data["广告收入（US）"] = us_data.get("Ad revenue", "N/A")
-                print(f"  US区域数据提取完成")
-            else:
-                print(f"  未找到目标iframe")
-                has_error = True
+            
+            # 选择日期
+            date_str = await parser.select_date()
+            
+            # 提取 Rest of World 数据（带重试）
+            async def extract_other_monetization():
+                data = await parser.get_monetization_data()
+                print(f"  Rest of World 变现数据提取完成")
+                return data
+            
+            other_monetization_data = await retry_on_error(monetization_url, extract_other_monetization)
+            
+            # 切换 US 区域
+            print(f"  切换到US区域...")
+            await parser.select_region_us()
+            
+            # 提取 US 数据（带重试）
+            async def extract_us_monetization():
+                data = await parser.get_monetization_data()
+                print(f"  US 变现数据提取完成")
+                return data
+            
+            us_monetization_data = await retry_on_error(monetization_url, extract_us_monetization)
         except Exception as e:
             print(f"  变现页面解析失败: {e}")
             has_error = True
         
-        # 访问数据仪表板页面
+        # ==================== Step 2: 仪表板页面 ====================
         dashboard_url = f"{base_url}/{app_id}/data-dashboard"
         print(f"  访问仪表板页面: {dashboard_url}")
         try:
             await page.goto(dashboard_url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_selector('iframe[title="TikTok for Developers embedded view"]', timeout=30000)
             
-            target_frame = await parser.get_target_frame()
-            if target_frame:
-                print(f"  找到目标iframe")
-                if not date_str:
-                    date_str = await parser.select_date_in_iframe(target_frame)
-                else:
-                    await parser.select_date_in_iframe(target_frame)
-                dashboard_data = await parser.get_dashboard_data(target_frame)
-                print(f"  Users数据提取完成")
-                
-                print(f"  切换到Performance标签...")
-                await parser.click_performance_tab(target_frame)
-                if date_str:
-                    await parser.select_date_in_iframe(target_frame)
-                perf_data = await parser.get_performance_data(target_frame)
-                dashboard_data["启动成功率"] = perf_data.get("Launch success rate", "N/A")
-                dashboard_data["首次平均启动速度"] = perf_data.get("Average first-time launch speed", "N/A")
-                dashboard_data["平均启动速度"] = perf_data.get("Average launch speed", "N/A")
-                print(f"  Performance数据提取完成")
+            # 选择日期
+            if not date_str:
+                date_str = await parser.select_date()
             else:
-                print(f"  未找到目标iframe")
-                has_error = True
+                await parser.select_date()
+            
+            # 提取 Rest of World Users 数据（带重试）
+            async def extract_other_dashboard():
+                data = await parser.get_dashboard_data()
+                print(f"  Rest of World Users数据提取完成")
+                return data
+            
+            other_dashboard_data = await retry_on_error(dashboard_url, extract_other_dashboard)
+            
+            # 切换 US 区域
+            print(f"  切换到US区域...")
+            await parser.select_region_us()
+            
+            # 提取 US Users 数据（带重试）
+            async def extract_us_dashboard():
+                data = await parser.get_dashboard_data()
+                print(f"  US Users数据提取完成")
+                return data
+            
+            us_dashboard_data = await retry_on_error(dashboard_url, extract_us_dashboard)
+            
+            # 切换 Performance 标签
+            print(f"  切换到Performance标签...")
+            await parser.click_performance_tab()
+            if date_str:
+                await parser.select_date()
+            
+            # 提取 Rest of World Performance 数据（带重试）
+            async def extract_other_perf():
+                data = await parser.get_performance_data()
+                print(f"  Rest of World Performance数据提取完成")
+                return data
+            
+            other_perf_data = await retry_on_error(dashboard_url, extract_other_perf)
+            other_dashboard_data.update(other_perf_data)
+            
+            # 切换 US 区域提取 Performance 数据
+            print(f"  切换到US区域...")
+            await parser.select_region_us()
+            
+            # 提取 US Performance 数据（带重试）
+            async def extract_us_perf():
+                data = await parser.get_performance_data()
+                print(f"  US Performance数据提取完成")
+                return data
+            
+            us_perf_data = await retry_on_error(dashboard_url, extract_us_perf)
+            us_dashboard_data.update(us_perf_data)
         except Exception as e:
             print(f"  仪表板页面解析失败: {e}")
             has_error = True
         
-        # 保存数据到Excel
+        # ==================== Step 3: 保存数据 ====================
         if date_str:
             try:
-                excel_saver.save_data(app_name, date_str, monetization_data, dashboard_data)
-                print(f"  数据已保存到 {app_name} sheet")
+                # 保存 Rest of World 数据到 Excel
+                excel_saver_other.save_data(app_name, date_str, other_monetization_data, other_dashboard_data)
+                print(f"  Rest of World 数据已保存")
             except Exception as e:
-                print(f"  Excel 保存失败（可能被占用）: {e}")
+                print(f"  Rest of World Excel 保存失败: {e}")
             
             try:
-                feishu_sync.sync_game_data(app_name, date_str, monetization_data, dashboard_data)
+                # 同步 Rest of World 数据到飞书
+                feishu_sync_other.sync_game_data(app_name, date_str, other_monetization_data, other_dashboard_data)
             except Exception as e:
-                print(f"  飞书同步失败: {e}")
+                print(f"  Rest of World 飞书同步失败: {e}")
+            
+            try:
+                # 保存 US 数据到 Excel
+                excel_saver_us.save_data(app_name, date_str, us_monetization_data, us_dashboard_data)
+                print(f"  US 数据已保存")
+            except Exception as e:
+                print(f"  US Excel 保存失败: {e}")
+            
+            try:
+                # 同步 US 数据到飞书
+                feishu_sync_us.sync_game_data(app_name, date_str, us_monetization_data, us_dashboard_data)
+            except Exception as e:
+                print(f"  US 飞书同步失败: {e}")
         else:
             print(f"  跳过保存：未获取到日期")
             has_error = True
@@ -154,7 +232,7 @@ async def run_spider() -> tuple[int, list[dict]]:
         # 登录成功后保存浏览器状态
         await browser_manager.save_state()
         
-        parser = PageParser(page, config.IFRAME_TITLE)
+        parser = PageParser(page)
         
         # 5. 遍历所有游戏并爬取数据
         print("\n" + "=" * 40)
@@ -193,6 +271,17 @@ async def run_spider() -> tuple[int, list[dict]]:
 
 def send_feishu_notification(success, duration, game_count, output_path, error_msg=None):
     """发送飞书通知"""
+    # 检查通知开关
+    config_path = Path(__file__).parent.parent / "config" / "feishu_credentials.json"
+    try:
+        with open(config_path, "r", encoding="utf-8-sig") as f:
+            config = json.load(f)
+        if not config.get("enable_notification", True):
+            print("飞书通知已禁用，跳过发送")
+            return
+    except Exception:
+        pass  # 配置文件读取失败时默认发送通知
+
     openclaw_config_path = Path.home() / ".openclaw" / "openclaw.json"
     try:
         with open(openclaw_config_path, "r", encoding="utf-8") as f:
@@ -355,12 +444,12 @@ def main():
         game_count = 0
         failed_games = []
         config = SpiderConfig()
-        output_path = Path(config.DAYS_REPORT_PATH)
-        network_path = Path(config.DAYS_REPORT_NETWORK_PATH)
+        output_path_other = Path(config.DAYS_REPORT_OTHER_PATH)
+        output_path_us = Path(config.DAYS_REPORT_US_PATH)
         error_msg = None
 
         # 确保输出目录存在
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path_other.parent.mkdir(parents=True, exist_ok=True)
 
         try:
             game_count, failed_games = asyncio.run(run_spider())
@@ -370,24 +459,7 @@ def main():
             print(f"爬虫运行出错: {e}")
 
         # 保存失败游戏列表
-        save_failed_games(failed_games, output_path.parent)
-
-        # Copy to network share
-        if success:
-            import shutil
-            try:
-                network_path.parent.mkdir(parents=True, exist_ok=True)
-                lock_file = network_path.parent / f"~${network_path.name}"
-                if lock_file.exists():
-                    try:
-                        lock_file.unlink()
-                    except:
-                        pass
-                shutil.copy2(output_path, network_path)
-                print(f"已复制到网络路径: {network_path}")
-            except Exception as e:
-                print(f"复制到网络路径失败: {e}")
-                error_msg = f"数据已保存到本地但复制到网络失败: {e}"
+        save_failed_games(failed_games, output_path_other.parent)
         
         duration = (datetime.now() - start_time).total_seconds()
 
@@ -398,7 +470,7 @@ def main():
         print("=" * 60)
 
         # 构建通知消息
-        notify_path = network_path if success else output_path
+        notify_path = output_path_other if success else output_path_other
         if failed_games:
             failed_names = ", ".join(g["name"] for g in failed_games)
             extra_msg = f"失败游戏 ({len(failed_games)}): {failed_names}"
