@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # 添加当前目录到路径
@@ -23,7 +23,7 @@ from utils.browser import BrowserManager
 LOCK_FILE = Path(__file__).parent / "output" / ".tiktok_report.lock"
 
 
-async def run_spider() -> tuple[int, list[dict]]:
+async def run_spider(target_date=None) -> tuple[int, list[dict]]:
     """运行爬虫，返回 (游戏数量, 失败游戏列表)"""
     config = SpiderConfig()
     
@@ -73,7 +73,7 @@ async def run_spider() -> tuple[int, list[dict]]:
             target_frame = await parser.get_target_frame()
             if target_frame:
                 print(f"  找到目标iframe")
-                date_str = await parser.select_date_in_iframe(target_frame)
+                date_str = await parser.select_date_in_iframe(target_frame, target_date=target_date)
                 monetization_data = await parser.get_monetization_data(target_frame)
                 print(f"  All区域变现数据提取完成")
                 
@@ -101,16 +101,16 @@ async def run_spider() -> tuple[int, list[dict]]:
             if target_frame:
                 print(f"  找到目标iframe")
                 if not date_str:
-                    date_str = await parser.select_date_in_iframe(target_frame)
+                    date_str = await parser.select_date_in_iframe(target_frame, target_date=target_date)
                 else:
-                    await parser.select_date_in_iframe(target_frame)
+                    await parser.select_date_in_iframe(target_frame, target_date=target_date)
                 dashboard_data = await parser.get_dashboard_data(target_frame)
                 print(f"  Users数据提取完成")
                 
                 print(f"  切换到Performance标签...")
                 await parser.click_performance_tab(target_frame)
                 if date_str:
-                    await parser.select_date_in_iframe(target_frame)
+                    await parser.select_date_in_iframe(target_frame, target_date=target_date)
                 perf_data = await parser.get_performance_data(target_frame)
                 dashboard_data["启动成功率"] = perf_data.get("Launch success rate", "N/A")
                 dashboard_data["首次平均启动速度"] = perf_data.get("Average first-time launch speed", "N/A")
@@ -351,6 +351,26 @@ def main():
         print(f"TikTok小游戏爬虫 - {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 60)
 
+        # === 新增：读取 run_config.json 获取基准日期 ===
+        target_date = None
+        config_file = Path(__file__).parent.parent.parent / "run_config.json"
+        if config_file.exists():
+            try:
+                with open(config_file, "r", encoding="utf-8") as f:
+                    run_config = json.load(f)
+                base_date_str = run_config.get("base_date", "").strip()
+                if base_date_str:
+                    base_date = datetime.strptime(base_date_str, "%Y%m%d")
+                    target_date = base_date - timedelta(days=2)
+                    print(f"基准日期: {base_date.strftime('%Y-%m-%d')}，目标日期(T-2): {target_date.strftime('%Y-%m-%d')}")
+                else:
+                    print("run_config.json 未指定基准日期，使用默认 T-2（前天）")
+            except Exception as e:
+                print(f"读取 run_config.json 失败: {e}，使用默认 T-2（前天）")
+        else:
+            print("run_config.json 不存在，使用默认 T-2（前天）")
+        # === 新增结束 ===
+
         success = False
         game_count = 0
         failed_games = []
@@ -363,7 +383,7 @@ def main():
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            game_count, failed_games = asyncio.run(run_spider())
+            game_count, failed_games = asyncio.run(run_spider(target_date))
             success = True
         except Exception as e:
             error_msg = str(e)
