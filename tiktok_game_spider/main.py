@@ -207,7 +207,25 @@ def send_feishu_notification(success, duration, game_count, output_path, error_m
         print("飞书配置缺少 appId 或 appSecret，跳过飞书通知")
         return
 
-    chat_id = "oc_f4d01fa850e2449c97a51cbabae073f3"
+    # 从飞书群ID独立配置文件读取
+    feishu_group_id_path = Path(__file__).parent.parent.parent / "feishu_group_id.json"
+    chat_id = None
+    
+    try:
+        with open(feishu_group_id_path, "r", encoding="utf-8") as f:
+            feishu_config = json.load(f)
+        
+        # 优先使用技能单独配置的群ID
+        if feishu_config.get("chat_ids", {}).get("tiktok-report"):
+            chat_id = feishu_config["chat_ids"]["tiktok-report"]
+        elif feishu_config.get("default_chat_id"):
+            chat_id = feishu_config["default_chat_id"]
+    except Exception:
+        pass
+    
+    # 如果配置文件没有，使用默认值
+    if not chat_id:
+        chat_id = "oc_f4d01fa850e2449c97a51cbabae073f3"
     timestamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     status_icon = "✅" if success else "❌"
     status_text = "成功" if success else "失败"
